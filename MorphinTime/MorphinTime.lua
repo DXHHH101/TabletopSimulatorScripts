@@ -1,5 +1,4 @@
 pID = 'MorphinTime'
-test = "test"
 --DXHHH101
 
 local Base = {
@@ -25,7 +24,7 @@ local Base = {
 }
 
 local AutoUpdate  = setmetatable({
-    version = "1.2.0", -- current version of your script, must match the .ver file contents
+    version = "1.3.0", -- current version of your script, must match the .ver file contents
     versionUrl = "https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MorphinTime/MorphinTime.ver", -- text file with the version number, eg: 1.0.0
     scriptUrl = "https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MorphinTime/MorphinTime.lua", -- latest version of your script
 
