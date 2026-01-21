@@ -1,5 +1,5 @@
 pID = 'MorphinTime'
-version = "1.3.1" -- current version of your script, must match the .ver file contents
+version = "1.3.2" -- current version of your script, must match the .ver file contents
 --DXHHH101
 
 local Base = {
