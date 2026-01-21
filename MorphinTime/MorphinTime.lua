@@ -1,9 +1,10 @@
 pID = 'MorphinTime'
+version = "1.3.1" -- current version of your script, must match the .ver file contents
 --DXHHH101
 
 local Base = {
     name = "Morphin' Time", -- used for output messages
-    debug = true, -- true to show error messages
+    debug = false, -- true to show error messages
 
     host = self,
     print = function(self, message)
@@ -24,7 +25,6 @@ local Base = {
 }
 
 local AutoUpdate  = setmetatable({
-    version = "1.3.1", -- current version of your script, must match the .ver file contents
     versionUrl = "https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MorphinTime/MorphinTime.ver", -- text file with the version number, eg: 1.0.0
     scriptUrl = "https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MorphinTime/MorphinTime.lua", -- latest version of your script
 	
@@ -45,7 +45,7 @@ local AutoUpdate  = setmetatable({
         local function split(v)
             return { v:match("^(%d+)%.?(%d*)%.?(%d*)") or 0 }
         end
-        local r, l = split(remoteVersion), split(self.version)
+        local r, l = split(remoteVersion), split(version)
         for i = 1, math.max(#r, #l) do
             local rv, lv = tonumber(r[i]) or 0, tonumber(l[i]) or 0
             if rv ~= lv then
@@ -84,7 +84,7 @@ function onload()
     self.createButton({
     label="+", click_function='registerModule', function_owner=self,
     position={0,0.2,-0.5}, height=120, width=120, font_size=100,
-    rotation={0,0,0},tooltip="register "..pID,
+    rotation={0,0,0},tooltip="Version "..version,
     color={0.1,0.1,0.1},font_color={1,1,1}
     })
     Wait.condition(registerModule,function() return Global.getVar('Encoder') ~= nil and true or false end)
