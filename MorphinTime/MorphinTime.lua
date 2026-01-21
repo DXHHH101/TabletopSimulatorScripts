@@ -1,4 +1,5 @@
 pID = 'MorphinTime'
+test = "test"
 --DXHHH101
 
 local Base = {
