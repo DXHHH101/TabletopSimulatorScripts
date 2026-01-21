@@ -25,8 +25,8 @@ local Base = {
 
 local AutoUpdate  = setmetatable({
     version = "1.2.0", -- current version of your script, must match the .ver file contents
-    versionUrl = "https://raw.githubusercontent.com/yourname/yourrepo/refs/heads/main/yourscript.ver", -- text file with the version number, eg: 1.0.0
-    scriptUrl = "https://raw.githubusercontent.com/yourname/yourrepo/refs/heads/main/yourscript.lua", -- latest version of your script
+    versionUrl = "https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MorphinTime/MorphinTime.ver", -- text file with the version number, eg: 1.0.0
+    scriptUrl = "https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MorphinTime/MorphinTime.lua", -- latest version of your script
 
     run = function(self)
         WebRequest.get(self.versionUrl, function(request)
@@ -76,6 +76,8 @@ local AutoUpdate  = setmetatable({
 
 
 function onload()
+	AutoUpdate:run()
+
 	Global.setVar('MorphinTime',self)
     
     self.createButton({
