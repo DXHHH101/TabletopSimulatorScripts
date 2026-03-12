@@ -58,7 +58,7 @@ end
 
 local function installUpdate(newVersion)
 	print('[33ff33]Installing Upgrade to '..ScriptClass..'['..tostring(newVersion)..']')
-	WebRequest.get('yourgithubfile.lua', function(res)
+	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/Main.lua', function(res)
         if (not(res.is_error)) then
             local state = {}
 
@@ -87,10 +87,9 @@ local function checkForUpdates()
 
 
     if Global.getVar("DXMTGScriptVersions_isFetching") then
-        checkUpdateTimeout = checkUpdateTimeout + 1
         if checkUpdateTimeout <= 5 then
-            print(self.GUID .. " Trying " .. checkUpdateTimeout)
             Wait.time(checkForUpdates, 1)
+            checkUpdateTimeout = checkUpdateTimeout + 1
         else 
             error("Failed to check for DX MTG Script updates.")
         end
@@ -1019,7 +1018,7 @@ end
 --========================================
 -- TTS Lifecycle / Commands
 --========================================
-function onLoad()
+function onLoad(script_state)
     checkCurrentVersion(script_state)
 
     Global.setVar(globalVar, self)
