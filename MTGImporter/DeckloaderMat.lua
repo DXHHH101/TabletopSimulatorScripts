@@ -1,3 +1,16 @@
+--[[
+"MTG Deck Loader DX" by DXHHH101
+Originally written by Omes (https://steamcommunity.com/sharedfiles/filedetails/?id=2163084841)
+Credit to Amuzet as well for ideas taken from their importer.
+
+This is my approach to a rewrite/recycling of Omes' code to comply with Scryfall's API rules.
+This is just the "playmat" to actually import the decks onto, the "MTG Importer DX" module is
+required for this to function properly.
+
+Feel free to contribute if you spot a bug or something to improve!
+https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
+]]
+
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
