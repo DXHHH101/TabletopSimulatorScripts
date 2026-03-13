@@ -168,18 +168,18 @@ local function checkForUpdates()
                     self.setVar("updateFinished", true) --used for the infinite bag object
                 end
             end)
-            return false
+            return
         else
             local remoteVersion = allRemoteVersions[ScriptClass]
             if not remoteVersion then
                 error("Remote version not found for " .. ScriptClass)
             elseif isNewerVersion(remoteVersion, ScriptVersion) then
                 installUpdate(remoteVersion)
-                return false
+                return
             end
         end
     end
-    return true
+    self.setVar("updateFinished", true) --used for the infinite bag object
 end
 
 local function checkCurrentVersion(script_state)
@@ -189,9 +189,7 @@ local function checkCurrentVersion(script_state)
     end
     --Will skip an update check once when the object is reloaded after updating
     if state.updatedTo ~= ScriptVersion then
-        if checkForUpdates() then
-            self.setVar("updateFinished", true) --used for the infinite bag object
-        end
+        checkForUpdates()
     else
         state.updatedTo = nil
         self.script_state = JSON.encode(state)
