@@ -132,7 +132,7 @@ end
 local function checkForUpdates()
     if Global.getVar("DXMTGScriptVersions_fetchFailed") then
         error("Remote version check previously failed.")
-        self.setVar("updateFinished", true) --used for the infinite bag object
+        self.setVar("updateFinished", "kill") --used for the infinite bag object
         return
     end
 
@@ -165,7 +165,7 @@ local function checkForUpdates()
                     Global.setVar("DXMTGScriptVersions_fetchFailed", true)
                     Global.setVar("DXMTGScriptVersions_isFetching", false)
                     error(res)
-                    self.setVar("updateFinished", true) --used for the infinite bag object
+                    self.setVar("updateFinished", "kill") --used for the infinite bag object
                 end
             end)
             return
@@ -179,7 +179,7 @@ local function checkForUpdates()
             end
         end
     end
-    self.setVar("updateFinished", true) --used for the infinite bag object
+    self.setVar("updateFinished", "kill") --used for the infinite bag object
 end
 
 local function checkCurrentVersion(script_state)
