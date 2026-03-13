@@ -14,7 +14,7 @@ https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
-local ScriptVersion = "0.0.0"
+local ScriptVersion = "1.0.0"
 local ScriptClass = 'MTGImporter.DeckloaderMat'
 local checkUpdateTimeout = 1
 
