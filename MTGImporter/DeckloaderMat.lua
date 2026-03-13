@@ -14,7 +14,7 @@ https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
-local ScriptVersion = "1.0.0"
+local ScriptVersion = "0.0.0"
 local ScriptClass = 'MTGImporter.DeckloaderMat'
 local checkUpdateTimeout = 1
 
@@ -108,7 +108,7 @@ end
 
 local function installUpdate(newVersion)
 	print('[33ff33]Installing Upgrade to '..ScriptClass..'['..tostring(newVersion)..']')
-	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/DeckloaderMat.lua', function(res)
+	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/DeckloaderMat.lua' .. "?t=" .. tostring(os.time()), function(res)
         if (not(res.is_error)) then
             local state = {}
 
@@ -147,7 +147,7 @@ local function checkForUpdates()
         local allRemoteVersions = Global.getTable("DXMTGScriptVersions")
         if not allRemoteVersions then
             Global.setVar("DXMTGScriptVersions_isFetching", true)
-            WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/ScriptVersions.json', function(res)
+            WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/ScriptVersions.json' .. "?t=" .. tostring(os.time()), function(res)
                 if (not(res.is_error)) then
                     local response = JSON.decode(res.text)
                     Global.setTable("DXMTGScriptVersions", response)
