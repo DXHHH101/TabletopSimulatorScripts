@@ -104,6 +104,7 @@ local function checkForUpdates()
         if checkUpdateTimeout <= 5 then
             Wait.time(checkForUpdates, 1)
             checkUpdateTimeout = checkUpdateTimeout + 1
+            return
         else 
             error("Failed to check for DX MTG Script updates.")
         end
