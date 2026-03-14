@@ -14,7 +14,7 @@ https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
-ScriptVersion = "1.0.0"
+local ScriptVersion = "1.0.0"
 local ScriptClass = 'MTGImporter.DeckloaderMat'
 local checkUpdateTimeout = 1
 
@@ -195,7 +195,11 @@ local function checkCurrentVersion(script_state)
         self.script_state = JSON.encode(state)
         self.setVar("updateFinished", true) --used for the infinite bag object
     end
-end 
+end
+
+function getScriptVersion()
+    return ScriptVersion
+end
 
 -- ============================================================================
 -- CONFIG / MODULE DEPENDENCIES
