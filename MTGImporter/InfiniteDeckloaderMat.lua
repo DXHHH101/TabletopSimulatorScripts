@@ -1,3 +1,14 @@
+--[[
+"Infinite 'Bag' MTG Deck Loader DX" by DXHHH101
+
+This is an infinite "bag" that will attempt to update its own code.
+After it does so (if it needs to), it will attempt to let the
+deck loader inside of it.
+
+Feel free to contribute if you spot a bug or something to improve!
+https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
+]]
+
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
