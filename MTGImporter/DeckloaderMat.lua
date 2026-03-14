@@ -14,7 +14,7 @@ https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
-local ScriptVersion = "1.0.0"
+ScriptVersion = "1.0.0"
 local ScriptClass = 'MTGImporter.DeckloaderMat'
 local checkUpdateTimeout = 1
 
@@ -107,7 +107,7 @@ local function isNewerVersion(r,l)
 end
 
 local function installUpdate(newVersion)
-	print('[33ff33]Installing Upgrade to '..ScriptClass..'['..tostring(newVersion)..']')
+	print('[33ff33]Installing Upgrade to MTG Deck Loader DX ['..tostring(newVersion)..']')
 	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/DeckloaderMat.lua' .. "?t=" .. tostring(os.time()), function(res)
         if (not(res.is_error)) then
             local state = {}
@@ -735,9 +735,11 @@ local function queryDeckNotebook(_)
 
     if notebookContents == nil then
         printError(ERROR_MESSAGE_DECKLOADER .. "Notebook not found: " .. playerColor, playerColor)
+        lockImporter(false)
         return
     elseif string.len(notebookContents) == 0 then
         printError(ERROR_MESSAGE_DECKLOADER .. "Notebook is empty. Please paste your decklist into your notebook (" .. playerColor .. ").", playerColor)
+        lockImporter(false)
         return
     end
 
@@ -764,6 +766,7 @@ local function queryDeckNotebook(_)
                     format = returnFormat
                     if not format then
                         printError(ERROR_MESSAGE_DECKLOADER .. "Notebook importer error: nil format", playerColor)
+                        lockImporter(false)
                         break
                     end
                 end
@@ -820,6 +823,7 @@ local function queryDeckNotebook(_)
                     end
                 else
                     printError(ERROR_MESSAGE_DECKLOADER .. "Notebook importer error: format not found", playerColor)
+                    lockImporter(false)
                     break
                 end
 
@@ -837,6 +841,7 @@ end
 local function queryDeckArchidekt(deckID)
     if not deckID or string.len(deckID) == 0 then
         printError(ERROR_MESSAGE_DECKLOADER .. "Invalid Archidekt deck: " .. deckID, playerColor)
+        lockImporter(false)
         return
     end
 
@@ -848,15 +853,19 @@ local function queryDeckArchidekt(deckID)
         if webReturn.error then
             if string.match(webReturn.error, "(404)") then
                 printError(ERROR_MESSAGE_DECKLOADER .. "Deck not found. Is it public?", playerColor)
+                lockImporter(false)
             else
                 printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: " .. tostring(webReturn.error), playerColor)
+                lockImporter(false)
             end
             return
         elseif webReturn.is_error then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: unknown", playerColor)
+            lockImporter(false)
             return
         elseif string.len(webReturn.text) == 0 then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: empty response", playerColor)
+            lockImporter(false)
             return
         end
 
@@ -864,12 +873,15 @@ local function queryDeckArchidekt(deckID)
 
         if not success then
             printError(ERROR_MESSAGE_DECKLOADER .. "Failed to parse JSON response from Archidekt.", playerColor)
+            lockImporter(false)
             return
         elseif not data then
             printError(ERROR_MESSAGE_DECKLOADER .. "Empty response from Archidekt.", playerColor)
+            lockImporter(false)
             return
         elseif not data.cards then
             printError(ERROR_MESSAGE_DECKLOADER .. "Empty response from Archidekt. Did you enter a valid deck URL?", playerColor)
+            lockImporter(false)
             return
         end
 
@@ -944,6 +956,7 @@ end
 local function queryDeckMoxfield(deckID)
     if not deckID or string.len(deckID) == 0 then
         printError(ERROR_MESSAGE_DECKLOADER .. "Invalid Moxfield deck: " .. deckID, playerColor)
+        lockImporter(false)
         return
     end
 
@@ -961,15 +974,19 @@ local function queryDeckMoxfield(deckID)
         if webReturn.error then
             if string.match(webReturn.error, "(404)") then
                 printError(ERROR_MESSAGE_DECKLOADER .. "Deck not found. Is it public?", playerColor)
+                lockImporter(false)
             else
                 printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: " .. webReturn.error, playerColor)
+                lockImporter(false)
             end
             return
         elseif webReturn.is_error then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: unknown", playerColor)
+            lockImporter(false)
             return
         elseif string.len(webReturn.text) == 0 then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: empty response", playerColor)
+            lockImporter(false)
             return
         end
 
@@ -998,12 +1015,15 @@ local function queryDeckMoxfield(deckID)
 
         if not success then
             printError(ERROR_MESSAGE_DECKLOADER .. "Failed to parse JSON response from Moxfield.", playerColor)
+            lockImporter(false)
             return
         elseif not data then
             printError(ERROR_MESSAGE_DECKLOADER .. "Empty response from Moxfield.", playerColor)
+            lockImporter(false)
             return
         elseif not data.name or not data.mainboard then
             printError(ERROR_MESSAGE_DECKLOADER .. "Empty response from Moxfield. Did you enter a valid deck URL?", playerColor)
+            lockImporter(false)
             return
         end
 
@@ -1052,6 +1072,7 @@ end
 local function queryDeckTappedout(deckID)
     if not deckID or string.len(deckID) == 0 then
         printError(ERROR_MESSAGE_DECKLOADER .. "Invalid TappedOut deck URL: " .. tostring(deckID), playerColor)
+        lockImporter(false)
         return
     end
 
@@ -1064,15 +1085,19 @@ local function queryDeckTappedout(deckID)
         if webReturn.error then
             if string.match(webReturn.error, "(404)") then
                 printError(ERROR_MESSAGE_DECKLOADER .. "Deck not found. Is it public?", playerColor)
+                lockImporter(false)
             else
                 printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: " .. webReturn.error, playerColor)
+                lockImporter(false)
             end
             return
         elseif webReturn.is_error then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: unknown", playerColor)
+            lockImporter(false)
             return
         elseif not webReturn.text or string.len(webReturn.text) == 0 then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: empty response", playerColor)
+            lockImporter(false)
             return
         end
 
@@ -1124,6 +1149,7 @@ end
 local function queryDeckDeckstats(deckURL)
     if not deckURL or string.len(deckURL) == 0 then
         printError(ERROR_MESSAGE_DECKLOADER .. "Invalid deckstats URL: " .. deckURL, playerColor)
+        lockImporter(false)
         return
     end
 
@@ -1142,15 +1168,19 @@ local function queryDeckDeckstats(deckURL)
         if webReturn.error then
             if string.match(webReturn.error, "(404)") then
                 printError(ERROR_MESSAGE_DECKLOADER .. "Deck not found. Is it public?", playerColor)
+                lockImporter(false)
             else
                 printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: " .. webReturn.error, playerColor)
+                lockImporter(false)
             end
             return
         elseif webReturn.is_error then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: unknown", playerColor)
+            lockImporter(false)
             return
         elseif string.len(webReturn.text) == 0 then
             printError(ERROR_MESSAGE_DECKLOADER .. "Web request error: empty response", playerColor)
+            lockImporter(false)
             return
         end
 
@@ -1427,19 +1457,34 @@ end
 -- ============================================================================
 -- LIFECYCLE
 -- ============================================================================
+local function setVersionInDescription(optionalExtraText)
+    local desc = self.getDescription() or ""
+    local versionLine = "[i]Version " .. tostring(ScriptVersion) .. (optionalExtraText and ("\n" .. optionalExtraText) or "") .. "[/i]"
+
+    local pattern = "%[i%]Version%s+%d+%.%d+%.%d+.-%[/i%]"
+
+    if desc:match(pattern) then
+        -- Replace existing version line
+        desc = desc:gsub(pattern, versionLine, 1)
+    else
+        -- No version present, add it to the top
+        if desc == "" then
+            desc = versionLine
+        else
+            desc = versionLine .. "\n" .. desc
+        end
+    end
+
+    self.setDescription(desc)
+end
 
 function onLoad(script_state)
+    self.setName("[00B4FF]MTG Deck Loader[-] [EF8B06]DX[-]")
+    setVersionInDescription("Type !reloadimporter and/or reload this object if the importer is stuck.\n")
 
     checkCurrentVersion(script_state)
 
     drawUI()
-
-    
-    --Get the importer module, but don't hard break without it for now
-    MTGImporterDX = Global.getVar("MTGImporterDX")
-    if not MTGImporterDX then
-        printError(ERROR_MESSAGE_DECKLOADER .. 'Missing "MTG Importer DX"')
-    end
 end
 
 -- ============================================================================

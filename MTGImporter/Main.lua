@@ -71,7 +71,7 @@ local function isNewerVersion(r,l)
 end
 
 local function installUpdate(newVersion)
-	print('[33ff33]Installing Upgrade to '..ScriptClass..'['..tostring(newVersion)..']')
+	print('[33ff33]Installing Upgrade to MTG Importer DX ['..tostring(newVersion)..']')
 	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/Main.lua' .. "?t=" .. tostring(os.time()), function(res)
         if (not(res.is_error)) then
             local state = {}
@@ -956,7 +956,7 @@ function loadDeckFromScryfall(bundledData)
                 }
             end
             lockImporter(false)
-                caller.call(onSuccess, bundledDataToSendBack)
+            caller.call(onSuccess, bundledDataToSendBack)
             return
         end
 
@@ -1033,7 +1033,33 @@ end
 --========================================
 -- TTS Lifecycle / Commands
 --========================================
+local function setVersionInDescription(optionalExtraText)
+    local desc = self.getDescription() or ""
+    local versionLine = "[i]Version " .. tostring(ScriptVersion) .. (optionalExtraText and ("\n" .. optionalExtraText) or "") .. "[/i]"
+
+    local pattern = "%[i%]Version%s+%d+%.%d+%.%d+.-%[/i%]"
+
+    if desc:match(pattern) then
+        -- Replace existing version line
+        desc = desc:gsub(pattern, versionLine, 1)
+    else
+        -- No version present, add it to the top
+        if desc == "" then
+            desc = versionLine
+        else
+            desc = versionLine .. "\n" .. desc
+        end
+    end
+
+    self.setDescription(desc)
+end
+
 function onLoad(script_state)
+    self.setName("[00B4FF]MTG Importer[-] [EF8B06]DX[-]")
+
+    setVersionInDescription("Type !reloadimporter if this is stuck")
+
+
     checkCurrentVersion(script_state)
 
     Global.setVar(globalVar, self)
