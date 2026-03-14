@@ -87,7 +87,7 @@ end
 
 local function installUpdate(newVersion)
 	print('[33ff33]Installing Upgrade to MTG Deck Loader DX ['..tostring(newVersion)..']')
-	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/DeckloaderMat.lua' .. "?t=" .. tostring(os.time()), function(res)
+	WebRequest.get('https://raw.githubusercontent.com/DXHHH101/TabletopSimulatorScripts/refs/heads/main/MTGImporter/InfiniteDeckloaderMat.lua' .. "?t=" .. tostring(os.time()), function(res)
         if (not(res.is_error)) then
             local state = {}
 
