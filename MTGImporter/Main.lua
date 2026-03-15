@@ -84,7 +84,7 @@ local function installUpdate(newVersion)
 
             self.script_state = JSON.encode(state)
 
-            self.setLuaScript(res.text)
+            self.script_code = res.text
             self.reload()
             print('[33ff33]Installation Successful[-]')
         else
