@@ -688,17 +688,9 @@ function createDeckObject(bundledData)
             reversible_card = true
         }
 
-
-
         local isDoubleSided = doubleSidedLayouts[cardInfo.layout] or false
 
-
         local nickname, description, image, nicknameSide2, descriptionSide2, imageSide2
-
-        -- Always create key A for base face (Do this before side Bs is created)
-        local keyAStr = tostring(nextDeckKey)
-        local cardIdA = nextDeckKey * 100
-        nextDeckKey = nextDeckKey + 1
 
         --misc options to pass
         local cardOptions = {}
@@ -727,16 +719,20 @@ function createDeckObject(bundledData)
             end
         end
 
-        customDeck[keyAStr] = {
-            FaceURL = image,
-            BackURL = bundledData.cardBack or DEFAULT_BACK_URL,
-            NumWidth = 1,
-            NumHeight = 1,
-            BackIsHidden = true
-        }
-
-
         for _ = 1, quantity do
+            -- Always create key A for base face (Do this before side Bs is created)
+            local keyAStr = tostring(nextDeckKey)
+            local cardIdA = nextDeckKey * 100
+            nextDeckKey = nextDeckKey + 1
+
+            customDeck[keyAStr] = {
+                    FaceURL = image,
+                    BackURL = bundledData.cardBack or DEFAULT_BACK_URL,
+                    NumWidth = 1,
+                    NumHeight = 1,
+                    BackIsHidden = true
+                }
+
             table.insert(deckIDs, cardIdA)
 
             local card = {
