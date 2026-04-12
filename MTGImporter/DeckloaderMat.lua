@@ -14,7 +14,7 @@ https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
-local ScriptVersion = "1.0.0"
+local ScriptVersion = "1.1.0"
 local ScriptClass = 'MTGImporter.DeckloaderMat'
 local checkUpdateTimeout = 1
 
@@ -417,11 +417,48 @@ local function loadDeckFromMainModule(cardMap, postLoadFunction, dataType, optio
 
 end
 
+local function loadDeckFromMainModuleMixedTypes(cardMap, postLoadFunction, options)
+
+    --[[
+    dataType (What's built for scryfall):
+    "id"
+    "name"
+
+    options (all optional):
+    deckName (string, defaults to "")
+    ]]
+
+    --if no options were passed just make an empty one to avoid an error
+    if not options then
+        options = {}
+    end
+
+    --Build data to send with callback functions
+    local bundledData = {
+        cardMap = cardMap,
+        deckName = options.deckName or "",
+        dataType = "mixed",
+        needToFetchTokens = true,
+        playerColor = playerColor,
+        callerGUID = self.getGUID(),
+        onSuccess = postLoadFunction
+    }
+
+    if not getMTGImporterDX() then
+        -- Importer module wasn't found, stop working
+        return
+    end
+    MTGImporterDX.call("loadDeckFromScryfall", bundledData)
+
+end
+
 function postDeckLoad(bundledData)
     local importedDeck = bundledData.importedDeck or {}
     local cardMap = bundledData.cardMap or {}
     local deckName = bundledData.deckName or ""
     local importedTokens = bundledData.importedTokens
+
+
 
     
 
@@ -492,20 +529,93 @@ function postDeckLoad(bundledData)
             local key = tostring(cardMapData.collector_number) .. "|" .. tostring(cardMapData.set)
             return byKey[key], ("key: " .. tostring(key))
         end
+    elseif bundledData.dataType == "name,set" then
+        local byKey = {}
+        for _, card in ipairs(importedDeck) do
+            byKey[tostring(card.name) .. "|" .. tostring(card.set)] = card
+        end
+
+        findCard = function(cardMapData)
+            local key = tostring(cardMapData.name) .. "|" .. tostring(cardMapData.set)
+            return byKey[key], ("key: " .. tostring(key))
+        end
     end
 
-    -- If unknown dataType, error out and hopefully get bug reports
-    if not findCard then
-        printError(ERROR_MESSAGE_DECKLOADER .. "Unknown dataType: " .. tostring(bundledData.dataType), playerColor)
-        return
-    end
+    if bundledData.dataType ~= "mixed" then
 
-    for _, cardMapData in pairs(cardMap) do
-        local card, label = findCard(cardMapData)
-        if not card then
-            printError(ERROR_MESSAGE_DECKLOADER .. "Missing card for " .. label, playerColor)
-        else
-            pushCardIntoDecks(cardMapData, card)
+        -- If unknown dataType, error out and hopefully get bug reports
+        if not findCard then
+            printError(ERROR_MESSAGE_DECKLOADER .. "Unknown dataType: " .. tostring(bundledData.dataType), playerColor)
+            return
+        end
+
+        for _, cardMapData in pairs(cardMap) do
+            local card, label = findCard(cardMapData)
+            if not card then
+                printError(ERROR_MESSAGE_DECKLOADER .. "Missing card for " .. label, playerColor)
+            else
+                pushCardIntoDecks(cardMapData, card)
+            end
+        end
+
+    else
+        --If this IS a mixed identifier/dataType deck:
+        local findCardMixed
+
+        local byCollectorNumberSet = {}
+        local byName = {}
+        local byNameSet = {}
+        for _, card in ipairs(importedDeck) do
+            byCollectorNumberSet[tostring(card.collector_number) .. "|" .. tostring(card.set)] = card
+            byNameSet[tostring(card.name) .. "|" .. tostring(card.set)] = card
+            byName[card.name] = card
+        end
+
+
+        for _, cardMapData in pairs(cardMap) do
+            if cardMapData.dataType == "collector_number,set" then
+                findCardMixed = function(cardMapData)
+                    local key = tostring(cardMapData.collector_number) .. "|" .. tostring(cardMapData.set)
+                    return byCollectorNumberSet[key], ("key: " .. tostring(key))
+                end
+            elseif cardMapData.dataType == "name,set" then
+                findCardMixed = function(cardMapData)
+                    local key = tostring(cardMapData.name) .. "|" .. tostring(cardMapData.set)
+                    return byNameSet[key], ("key: " .. tostring(key))
+                end
+            elseif cardMapData.dataType == "name" then
+                -- emergency fallback: front face name for split/MDFC "Front // Back"
+                local function fallbackFrontName(targetName)
+                    for _, candidate in ipairs(importedDeck) do
+                        local cname = candidate.name
+                        if cname and cname:find(" // ", 1, true) then
+                            local front = cname:match("^(.-) // ")
+                            if front == targetName then
+                                return candidate
+                            end
+                        end
+                    end
+                    return nil
+                end
+
+                findCardMixed = function(cardMapData)
+                    local card = byName[cardMapData.name] or fallbackFrontName(cardMapData.name)
+                    return card, ("name: " .. tostring(cardMapData.name))
+                end
+            end
+
+            if not findCardMixed then
+                printError(ERROR_MESSAGE_DECKLOADER .. "Unknown dataType for mixed: " .. tostring(bundledData.dataType), playerColor)
+                return
+            end
+
+            local card, label = findCardMixed(cardMapData)
+            if not card then
+                printError(ERROR_MESSAGE_DECKLOADER .. "Missing card for mixed " .. label, playerColor)
+            else
+                pushCardIntoDecks(cardMapData, card)
+            end
+            findCardMixed = nil
         end
     end
 
@@ -591,6 +701,8 @@ function postDeckLoad(bundledData)
     })
 end
 
+
+
 -- ============================================================================
 -- PARSERS (URL / DECK IDS / DECK LINES)
 -- ============================================================================
@@ -654,13 +766,13 @@ local function parseMTGALine(line)
     return name, count, setCode, collectorNum
 end
 
-local function parseCardLine(line, format)
+local function parseCardLine(line)
     -- Parses one deck line into:
     -- qty = number,
     -- name = string,
     -- set = string|nil,
     -- num = string|nil,
-    -- format = "name_set_num" | "set_name" | "name_only"
+    -- format = "name_set_num" | "set_name" | "name"
 
     if not line then return nil, "nil line" end
 
@@ -682,32 +794,40 @@ local function parseCardLine(line, format)
         return nil, "missing card data"
     end
 
-    if not format or format == "name_set_num" then
-        -- FORMAT 1: CARDNAME (SET) NUM
-        -- Example: "Lightning Bolt (M11) 146"
-        local name, set, num = rest:match("^(.-)%s*%((%w+)%)%s*(%S+)%s*$")
-        if name and set and num then
-            name = trim(name)
-            return qty, name, set:lower(), num, "name_set_num" -- qty, name, set, num, format
-        end
+    -- FORMAT 1: CARDNAME (SET) NUM
+    -- Example: "Lightning Bolt (M11) 146"
+    local name, set, num = rest:match("^(.-)%s*%((%w+)%)%s*(%S+)%s*$")
+    if name and set and num then
+        name = trim(name)
+        return qty, name, set:lower(), num, "name_set_num" -- qty, name, set, num, format
     end
 
-    if not format or format == "set_name" then
-        -- FORMAT 2: [SET] CARDNAME
-        -- Example: "[mh2] Ragavan, Nimble Pilferer"
-        local set, name = rest:match("^%[(%w+)%]%s*(.+)$")
-        if set and name then
-            name = trim(name)
-            return qty, name, set:lower(), nil, "set_name" -- qty, name, set, num, format
-        end
+
+    -- FORMAT 2: [SET] CARDNAME
+    -- Example: "[mh2] Ragavan, Nimble Pilferer"
+    local set, name = rest:match("^%[(%w+)%]%s*(.+)$")
+    if set and name then
+        name = trim(name)
+        return qty, name, set:lower(), nil, "name_set" -- qty, name, set, num, format
     end
 
-    if not format or format == "name" then
-        local name = trim(rest)
-        if name ~= "" then
-            return qty, name, nil, nil, "name" -- qty, name, set, num, format
-        end
+
+    -- FORMAT: CARDNAME (SET)
+    -- Example: "Lightning Bolt (M11)"
+    local name, set = rest:match("^(.-)%s*%((%w+)%)%s*$")
+    if name and set then
+        name = trim(name)
+        return qty, name, set:lower(), nil, "name_set" -- qty, name, set, format
     end
+
+
+
+    local name = trim(rest)
+    if name ~= "" then
+        return qty, name, nil, nil, "name" -- qty, name, set, num, format
+    end
+
+    --NO FORMAT FOUND
     return nil, nil, nil, nil, nil -- qty, name, set, num, format
 end
 
@@ -750,7 +870,7 @@ local function queryDeckNotebook(_)
     local cardMap = {}
 
     local mode = "mainboard"
-    local format, scryfallFormat
+    local scryfallFormat
     local qtyField = "mainboardQty"
 
 
@@ -764,21 +884,11 @@ local function queryDeckNotebook(_)
                 qtyField = entryCheck.qtyField
             else
 
-                local qty, name, setCode, collectorNum, returnFormat = parseCardLine(line, format)
-
-                if not format then
-                    format = returnFormat
-                    if not format then
-                        printError(ERROR_MESSAGE_DECKLOADER .. "Notebook importer error: nil format", playerColor)
-                        lockImporter(false)
-                        break
-                    end
-                end
-
+                local qty, name, setCode, collectorNum, format = parseCardLine(line)
 
                 local key
 
-                if format == "card_set_num" then
+                if format == "name_set_num" then
                     scryfallFormat = "collector_number,set"
                     key = collectorNum .. "|" .. setCode
                     local entry = cardMap[key]
@@ -790,11 +900,12 @@ local function queryDeckNotebook(_)
                             commanderQty=0,
                             sideboardQty=0,
                             maybeboardQty=0,
-                            mainboardQty=0
+                            mainboardQty=0,
+                            dataType=scryfallFormat
                         }
                         cardMap[key] = entry
                     end
-                elseif format == "set_card" then
+                elseif format == "name_set" then
                     scryfallFormat = "name,set"
                     key = name .. "|" .. setCode
                     local entry = cardMap[key]
@@ -806,7 +917,8 @@ local function queryDeckNotebook(_)
                             commanderQty=0,
                             sideboardQty=0,
                             maybeboardQty=0,
-                            mainboardQty=0
+                            mainboardQty=0,
+                            dataType=scryfallFormat
                         }
                         cardMap[key] = entry
                     end
@@ -821,7 +933,8 @@ local function queryDeckNotebook(_)
                             commanderQty=0,
                             sideboardQty=0,
                             maybeboardQty=0,
-                            mainboardQty=0
+                            mainboardQty=0,
+                            dataType=scryfallFormat
                         }
                         cardMap[key] = entry
                     end
@@ -836,7 +949,7 @@ local function queryDeckNotebook(_)
         end
     end
 
-    loadDeckFromMainModule(cardMap, "postDeckLoad", scryfallFormat)
+    loadDeckFromMainModuleMixedTypes(cardMap, "postDeckLoad", scryfallFormat)
 end
 
 -- ============================================================================

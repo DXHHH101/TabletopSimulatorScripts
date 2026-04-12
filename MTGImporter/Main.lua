@@ -15,7 +15,7 @@ https://github.com/DXHHH101/TabletopSimulatorScripts/tree/main/MTGImporter
 -- ============================================================================
 -- Variables GITHUB AUTO-UPDATE
 -- ============================================================================
-local ScriptVersion = "1.0.1"
+local ScriptVersion = "1.1.0"
 local ScriptClass = 'MTGImporter.Main'
 local checkUpdateTimeout = 1
 
@@ -215,6 +215,39 @@ local function buildIdentifiersFromMap(cards, identifierType)
             table.insert(identifiers, {
                 name = card.name
             })
+        end
+        return identifiers
+    elseif identifierType == "name,set" then
+        local identifiers = {}
+        for _, card in pairs(cards) do
+            table.insert(identifiers, {
+                set = card.set,
+                name = card.name
+            })
+        end
+        return identifiers
+    elseif identifierType == "mixed" then
+        local identifiers = {}
+        for _, card in pairs(cards) do
+            if card.dataType == "id" then
+                table.insert(identifiers, {
+                    id = card.id,
+                })
+            elseif card.dataType == "collector_number,set" then
+                table.insert(identifiers, {
+                    set = card.set,
+                    collector_number = card.collector_number
+                })
+            elseif card.dataType == "name" then
+                table.insert(identifiers, {
+                    name = card.name
+                })
+            elseif card.dataType == "name,set" then
+                table.insert(identifiers, {
+                    set = card.set,
+                    name = card.name
+                })
+            end
         end
         return identifiers
     end
