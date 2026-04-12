@@ -105,7 +105,7 @@ local function checkForUpdates()
             Wait.time(checkForUpdates, 1)
             checkUpdateTimeout = checkUpdateTimeout + 1
             return
-        else 
+        else
             error("Failed to check for DX MTG Script updates.")
         end
     else
@@ -153,7 +153,7 @@ local function checkCurrentVersion(script_state)
         state.updatedTo = nil
         self.script_state = JSON.encode(state)
     end
-end 
+end
 
 --========================================
 -- Import Lock / Rate Limit Helpers
@@ -191,7 +191,7 @@ end
 --========================================
 local function buildIdentifiersFromMap(cards, identifierType)
     --the string identifier type names are straight form scryfall https://scryfall.com/docs/api/cards/collection
-    
+
     if identifierType == "id" then
         local identifiers = {}
         for _, card in pairs(cards) do
@@ -320,11 +320,16 @@ end
 --========================================
 -- Card Layout Handling
 --========================================
---This is just intended for layouts with very slight tweaks, like prototype
+--If the layout doesn't match anything (new releases), just default to the card name and description if it can be gotten
+--Also for card layouts that can be super generic
 local function cardLayoutHandlingNormal(cardInfo, options)
-    local nickname = cardInfo.name .. "\n" .. cardInfo.type_line .. " " .. cardInfo.cmc .. "CMC"
+    cardName = cardInfo.name or "Card Name Not Found"
+    typeLine = cardInfo.type_line or "Type Line Not Found"
+    cmc = cardInfo.cmc or "CMC Not Found"
 
-    local description = cardInfo.oracle_text
+    local nickname = cardName .. "\n" .. typeLine .. " " .. cmc .. "CMC"
+
+    local description = cardInfo.oracle_text or "Description Not Found"
     if cardInfo.power then
         if description ~= "" then
             description = description .. "\n"
@@ -418,7 +423,7 @@ local cardLayoutHandling = {
         end
 
         local image = getSingleFacedImage(cardInfo, options.isPNGImage)
-        
+
         return nickname, description, image
     end,
 
@@ -469,7 +474,7 @@ local cardLayoutHandling = {
         end
 
         local image = getSingleFacedImage(cardInfo, options.isPNGImage)
-        
+
         return nickname, description, image
     end,
 
@@ -497,7 +502,32 @@ local cardLayoutHandling = {
 
         return nickname, description, image
     end,
-    
+
+    --https://scryfall.com/search?q=layout%3Aprepare
+    prepare = function(cardInfo, options)
+        local nickname = cardInfo.name .. "\n" .. cardInfo.type_line .. " " .. cardInfo.cmc .. "CMC"
+
+        local description = ""
+        for i, face in ipairs(cardInfo.card_faces) do
+            --Don't add the spacing for the first one
+            if i > 1 then
+                description = description .. "\n\n"
+            end
+            description = description .. "[u]" .. face.name .. "[/u]\n" .. face.oracle_text
+
+            if face.power then
+                if description ~= "" then
+                    description = description .. "\n"
+                end
+                description = description .. "[b]" .. face.power .. "/" .. face.toughness .. "[/b]"
+            end
+        end
+
+        local image = getSingleFacedImage(cardInfo, options.isPNGImage)
+
+        return nickname, description, image
+    end,
+
     prototype = function(cardInfo, options)
         local nickname, description, image = cardLayoutHandlingNormal(cardInfo, options)
 
@@ -647,7 +677,7 @@ local cardLayoutHandling = {
 -- Deck Object Construction
 --========================================
 function createDeckObject(bundledData)
-    --[[bundledData must have decklistArray (see below) 
+    --[[bundledData must have decklistArray (see below)
         Optional:
         cacheBuster (bool) add the time onto the image uri to force a cache break
         isPNGImage (bool) whether to use the large or png image (large by default)
@@ -709,7 +739,7 @@ function createDeckObject(bundledData)
 
         --check if cachebusting is needed (almost never, toggled by user)
         if bundledData.cacheBuster then
-            
+
             image = stripScryfallImageURI(image)
             image = image .. "?" .. cacheBuster
 
@@ -746,7 +776,7 @@ function createDeckObject(bundledData)
             if isSidewaysCard(cardInfo) then
                 card.AltLookAngle = { x = 0, y = 180, z = 270 }
             end
-            
+
 
             -- Add State 2 if double-faced
             if isDoubleSided then
@@ -763,11 +793,11 @@ function createDeckObject(bundledData)
                     NumHeight = 1,
                     BackIsHidden = true
                 }
-                
+
                 card.States = {
                     ["2"] = {
                         Name = "Card",
-                        Nickname = nicknameSide2,   
+                        Nickname = nicknameSide2,
                         Description = descriptionSide2,
                         Transform = {posX=0,posY=0,posZ=0, rotX=0,rotY=0,rotZ=0, scaleX=1,scaleY=1,scaleZ=1},
                         CardID = cardIdB,
@@ -779,7 +809,7 @@ function createDeckObject(bundledData)
             table.insert(cardContainer, card)
         end
     end
-    
+
     local deckData = {
         Name = "DeckCustom",
         Nickname = "",
@@ -828,7 +858,7 @@ function loadDeckFromScryfall(bundledData)
 
     local identifiers
     identifiers = buildIdentifiersFromMap(bundledData.cardMap, bundledData.dataType)
-    
+
     local batches = chunkArray(identifiers, BATCH_SIZE)
 
     local url = "https://api.scryfall.com/cards/collection"
@@ -843,13 +873,13 @@ function loadDeckFromScryfall(bundledData)
 
 
     local function requestNextBatch()
-        
+
 
         if batchIndex > #batches then
 
             --check if we need to fetch tokens before returning
             if bundledData.needToFetchTokens then
-                
+
                 local tokenIDs = {}
                 local tokenIDDupeCheck = {}
                 for _, cardData in ipairs(allFound or {}) do
@@ -880,8 +910,8 @@ function loadDeckFromScryfall(bundledData)
                         end
                     end
                 end
-                
-                
+
+
                 --if there are tokens in the list, restart the requestNewBatch loop, but replace the identifiers with the tokenIDs
                 if #tokenIDs > 0 then
 
@@ -913,7 +943,7 @@ function loadDeckFromScryfall(bundledData)
                 printError("Missing caller. Was the deckloader deleted?", bundledData.playerColor)
                 lockImporter(false)
             end
-            local onSuccess = bundledData.onSuccess    
+            local onSuccess = bundledData.onSuccess
 
             --if this was a token run, handle the output differently
             if bundledDataToSendBack.isFetchingTokens then
@@ -926,7 +956,7 @@ function loadDeckFromScryfall(bundledData)
                 end
 
                 --check each card's all_parts and find imported tokens to attach to their data
-                if next(importedTokensByID) then 
+                if next(importedTokensByID) then
                     for _, card in ipairs(bundledDataToSendBack.importedDeck or {}) do
                         local importerAddedTokenData = {}
                         if card.all_parts then
@@ -969,7 +999,7 @@ function loadDeckFromScryfall(bundledData)
                 if bundledDataToSendBack.isFetchingTokens then --if it's a token run. Remove all of the all_parts from the raw json. Too much data, takes forever to decode
                     raw = raw:gsub('"all_parts"%s*:%s*%b[]%s*,?', "")
                 end
-                
+
                 local decoded = json.decode(raw)
                 if decoded and decoded.object ~= "error" then
                     local found = decoded.data or {}
